@@ -1,0 +1,187 @@
+<div class="activity-wrapper">
+    <div class="menu">
+       <div class="menu-items">Add<br>Activity</div>
+       <div class="menu-items">Activity<br>List</div>
+       <div class="menu-items">Edit<br>Activity</div>
+    </div>
+    <form id="addActForm" method="POST">
+        <div class="activity-adder">
+            <label for="txtActName">Activity Name:</label>
+            <input type="text" name="txtActName" onkeyup="checkActNDScheduleName(this)" required/>
+            <span class="show-err"></span>
+            <label for="act-time-picker">Total Time To Spent On Activity:</label>
+            <div class="act-time-picker">
+                <input type="number" name="txtActTimeHrs" min="0" max="23" required/>
+                <label for="txtActTimeHrs">Hrs</label>
+                <input type="number" name="txtActTimeMins" min="0" max="59" required/>
+                <label for="txtActTimeMins">Mins</label>
+            </div>
+            <div class="act-classifier">
+                <input type="checkbox" name="txtActIsImp">
+                <label for="actIsImp" class="chkboxLable" >Important</label>
+                <input type="checkbox" name="txtActIsUrgent">
+                <label for="actIsUrgent" class="chkboxLable">Urgent</label>
+            </div>
+            <br>
+            <span class="err-msg-from-sv"><?php echo validation_errors(); ?></span>
+            <br>
+            <div class="scheduleBtns">
+                <input type="submit" id="addBtn" name="addActivity" value="Add">
+                <input type="reset" id="resetBtn" value="Reset">
+            </div>
+        </div>
+    </form>
+    <div class="activity-shower">
+        <?php foreach($activityList as $activity) { ?>
+            <div class="activity-item" data-actid="<?php echo $activity->actNum;?>">
+                <div class="activity-info">
+                    <span class="actName"><?php echo $activity->actName;?></span>
+                    <br>
+                    <span class="actTimeMins"><?php echo "".$activity->Hours." Hours ".$activity->Minutes." Minutes ";?></span>
+                    <br>
+                    <span class="imp-act">
+                        <?php
+                            if($activity->isImp) { 
+                        ?>
+                            <span class="is-symbol" data-is="1">&#10004;</span> Important
+                        <?php }
+                            else
+                            { ?>
+                                <span class="is-not-symbol" data-is="0">&#10006;</span> Important
+                        <?php } 
+                        ?>
+                    </span>
+                    <br>
+                    <span class="urgent-act">
+                        <?php
+                            if($activity->isUrgent) {
+                        ?>
+                                <span class="is-symbol" data-is="1">&#10004;</span> Urgent
+                        <?php  }
+                            else
+                            { ?>
+                                <span class="is-not-symbol" data-is="0">&#10006;</span> Urgent
+                        <?php } 
+                        ?>
+                    </span>
+                </div>
+                <div class="activity-btns">
+                    <button class="editBtn">
+                        <img src="<?php echo base_url(); ?>images/edit(1).svg">
+                    </button>
+                    <button class="deleteBtn">
+                        <img src="<?php echo base_url(); ?>images/trash.svg">
+                    </button>
+                </div>
+            </div>
+        <?php } ?>
+        <div class="scheduleBtns">
+            <input type="button" id="saveBtn" value="Save">
+            <input type="button" id="resetBtn" value="Reset">
+        </div>
+        <span class="err-msg-from-sv"></span>
+    </div>
+    <form id="editActForm" method="POST">
+        <div class="activity-editor">
+            <input type="text" name="actID" class="hide-content" readonly>
+            <label for="actName">Activity Name:</label>
+            <input type="text" name="actName" onkeyup="checkActNDScheduleName(this)" required/>
+            <span class="show-err"></span>
+            <label for="act-time-picker">Total Time To Spent On Activity:</label>
+            <div class="act-time-picker">
+                <input type="number" name="actTimeHrs" min="0" max="23" required/>
+                <label for="actTimeHrs">Hrs</label>
+                <input type="number" name="actTimeMins" min="0" max="59" required/>
+                <label for="actTimeMins">Mins</label>
+            </div>
+            <div class="act-classifier">
+                <input type="checkbox" name="actIsImp">
+                <label for="actIsImp" class="chkboxLable">Important</label>
+                <input type="checkbox" name="actIsUrgent">
+                <label for="actIsUrgent" class="chkboxLable">Urgent</label>
+            </div>
+            <br>
+            <span class="err-msg-from-sv"><?php echo validation_errors(); ?></span>
+            <br>
+            <div class="scheduleBtns">
+                <input type="submit" id="editBtn" name="editActivity" value="Edit">
+                <input type="reset" id="resetBtn" value="Reset">
+            </div>
+        </div> 
+    </form>
+   <script>
+        function addBtnsEvent() {
+            var editBtns = document.getElementsByClassName('editBtn');
+            var deleteBtns = document.getElementsByClassName('deleteBtn');
+            for(var i=0;i<editBtns.length;i++)
+            {
+                editBtns[i].addEventListener('click',toggleEdit);
+            }
+            for(var i=0;i<deleteBtns.length;i++)
+            {
+                deleteBtns[i].addEventListener('click',toggleDelete);
+            }   
+        }
+        function toggleEdit(ev) {
+            var actToEdit = ev.currentTarget.parentElement.parentElement;
+            console.log(actToEdit);
+            var actToEditData = {
+                "actID" : actToEdit.dataset.actid,
+                "actName" : actToEdit.children[0].children[0].textContent,
+                "actTime": actToEdit.children[0].children[2].textContent,
+                "isImp": actToEdit.children[0].children[4].children[0].dataset.is,
+                "isUrgent": actToEdit.children[0].children[6].children[0].dataset.is
+            }
+            console.log(actToEditData);
+            fillEditActForm(actToEditData);
+        }
+        function toggleDelete(ev) {
+            ev.currentTarget.parentElement.parentElement.classList.toggle('activity-removed');
+        }
+        function fillEditActForm(actData) {
+            var formInputs = document.querySelectorAll('.activity-editor input');
+            formInputs[0].value = actData.actID;
+            formInputs[1].defaultValue = actData.actName;
+            formInputs[2].value = parseInt(actData.actTime.split(" ")[0]);
+            formInputs[3].value = parseInt(actData.actTime.split(" ")[2]);
+            formInputs[4].checked = actData.isImp == 1 ? true : false;
+            formInputs[5].checked = actData.isUrgent == 1 ? true : false;
+            document.querySelectorAll('.menu-items')[2].click();
+        }
+        function deleteActivities() {
+            var activityToDelete = document.querySelectorAll('.activity-item.activity-removed');
+            var actToDeleteData = [];
+            activityToDelete.forEach((activity) => {
+                actToDeleteData.push(activity.dataset.actid);
+            });
+
+            console.log(activityToDelete);
+            var myForm = document.createElement('form');
+            var actNums = document.createElement('input');
+            actNums.type = 'text';
+            actNums.name = 'actToDelete';
+            actNums.value = actToDeleteData.join("*");
+            myForm.appendChild(actNums);
+            var fd = new FormData(myForm);
+
+            var actDeleteReq = new XMLHttpRequest();
+            actDeleteReq.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200 ) {
+                    if(this.response == 1) {
+                        activityToDelete.forEach((deletedActivity) => {
+                            deletedActivity.remove();
+                        });
+                        document.getElementById("editActForm").reset();
+                    }
+                    else {
+                        document.getElementsByClassName('err-msg-from-sv')[0].textContent = "Something Went Wrong While Deleting Activity";
+                    }
+                } 
+            }
+            actDeleteReq.open('POST','./deleteMulitActs');
+            actDeleteReq.send(fd);
+        }
+        addBtnsEvent();
+        document.getElementById('saveBtn').addEventListener('click',deleteActivities);
+    </script>
+</div>

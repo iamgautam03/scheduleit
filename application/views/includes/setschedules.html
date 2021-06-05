@@ -1,0 +1,350 @@
+<div class="set-schedules-wrapper">
+    <div class="menu">
+        <div class="menu-items">Assign <br>Schedule Date</div>
+        <div class="menu-items">Assigned <br>Schedule Dates</div>
+        <div class="menu-items">Change <br>Schedule Date</div>
+    </div>
+    <form id="setScheduleForm">
+        <div class="schedule-date-assigner">
+            <div class="schedule-date-setter">
+                <label for="txtSchedules">Select Schedule</label>
+                <select name="txtSchedules">
+                    <?php foreach($schedules as $schedule) { ?>
+                        <option value="<?php echo $schedule->s_id;?>">
+                            <?php echo $schedule->scheduleName; ?>
+                        </option>
+                    <?php } ?>
+                </select>
+                <label for="txtScheduleDate">Select Schedule Date</label>
+                <input type="date" name="txtScheduleDate" required/>
+                <div class="scheduleBtns">
+                    <input type="button" id="addBtn" value="Add">
+                    <input type="reset" id="resetBtn" value="Clear">
+                </div>
+            </div>
+            <div class="schedule-acts">
+                <h2>Currently Assigned Schedule</h2>
+            </div>
+            <input type="button" id="createBtn" value="Create">
+            <span class="err-msg-from-sv"></span>
+        </div> 
+    </form>
+    <div class="schedule-date-shower">
+        <?php foreach($assignedSchedules as $schedule) { ?>
+            <div class="schedule-item" data-sid="<?php echo $schedule->s_id; ?>">
+                <div class="schedule-info">
+                    <span class="scheduleName">
+                        <?php echo $schedule->scheduleName; ?>
+                    </span>
+                    <br>
+                    <span class="scheduleDate">
+                        <?php 
+                            $assignedDate = date_create($schedule->scheduleDate);
+                            echo "Assigned On ".date_format($assignedDate,"jS M Y"); 
+                        ?>
+                    </span>
+                </div>
+                <div class="schedule-btns">
+                    <button class="editBtn">
+                        <img src="<?php echo base_url(); ?>images/edit(1).svg">
+                    </button>
+                    <button class="deleteBtn">
+                        <img src="<?php echo base_url(); ?>images/trash.svg">
+                    </button>
+                </div>
+            </div>
+        <?php } ?>
+        <div class="scheduleBtns">
+            <input type="button" id="saveBtn" value="Save">
+        </div>
+        <span class="err-msg-from-sv"></span>
+    </div>
+    <form id="editScheduleDateForm">
+        <div class="schedule-date-assigner"></div>
+        <span class="err-msg-from-sv"></span>
+    </form>
+    <script>
+        function editAssignedScheduleDate(ev) {
+            var myForm = document.createElement('form');
+            var scheduleIDInput = document.createElement('input');
+            scheduleIDInput.name = 'txtSID';
+            scheduleIDInput.type = 'text';
+            scheduleIDInput.value = document.getElementsByName('txtScheduleName')[0].dataset.sid;
+            var oldScheduleDateInput = document.getElementsByName('txtOldScheduleDate')[0].cloneNode();
+            var newScheduleDateInput = document.getElementsByName('txtNewScheduleDate')[0].cloneNode();
+            myForm.appendChild(scheduleIDInput);
+            myForm.appendChild(oldScheduleDateInput);
+            myForm.appendChild(newScheduleDateInput);
+
+            var fd = new FormData(myForm);
+
+            var editAssignedScheduleReq = new XMLHttpRequest();
+            editAssignedScheduleReq.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200 ) {
+                    if(this.response == '1') {
+                        window.location.reload();
+                    }
+                    else {
+                        document.querySelectorAll('.err-msg-from-sv')[2].innerHTML = this.response;
+                    }
+                }
+            }
+            editAssignedScheduleReq.open('POST','./editAssignedScheduleAJAX');
+            editAssignedScheduleReq.send(fd);
+            
+        }
+        function assignSchedules(ev) {
+            var schedules = document.querySelectorAll('.selected-acts');
+            var dataToSend = [];
+            schedules.forEach((schedule) => {
+                var data = {
+                    "sid": schedule.dataset.sid,
+                    "sdate": schedule.children[0].children[2].textContent.slice(12)
+                };
+                dataToSend.push(JSON.stringify(data));
+            });
+            dataToSend = dataToSend.join('*');
+            
+            var myForm = document.createElement('form');
+            var myInput = document.createElement('input');
+            myInput.name = 'assignedSchedules';
+            myInput.value = dataToSend;
+            myForm.appendChild(myInput);
+            
+            var fd = new FormData(myForm);
+
+            var assignScheduleReq = new XMLHttpRequest();
+            assignScheduleReq.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200 ) {
+                    if(this.response == '1') {
+                        window.location.reload();
+                    }
+                    else {
+                        document.querySelectorAll('.err-msg-from-sv')[0].innerHTML = this.response;
+                    }
+                    
+                } 
+            }
+            assignScheduleReq.open('POST','./assignSchedulesAJAX');
+            assignScheduleReq.send(fd);
+
+        }
+        function deleteAssignedSchedule(ev) {
+            ev.preventDefault();
+            ev.currentTarget.parentElement.parentElement.remove();
+        }
+        function findOrdinal(d) {
+            if (d > 3 && d < 21) return d+'th';
+            switch (d % 10) {
+                case 1:  return d+"st";
+                case 2:  return d+"nd";
+                case 3:  return d+"rd";
+                default: return d+"th";
+            }
+        }
+        function getMonth(m) {
+            switch(m) {
+                case 'Jan': return 0;
+                case 'Feb': return 1;
+                case 'Mar': return 2;
+                case 'Apr': return 3;
+                case 'May': return 4;
+                case 'Jun': return 5;
+                case 'Jul': return 6;
+                case 'Aug': return 7;
+                case 'Sep': return 8;
+                case 'Oct': return 9;
+                case 'Nov': return 10;
+                case 'Dec': return 11;
+                default: return 0;
+            }
+        }
+        function addSchedule(ev) {
+            var url = "<?php echo base_url();?>";
+            var assignedSchedule = ev.currentTarget.parentElement.parentElement.children;
+            var scheduleID = assignedSchedule[1].selectedOptions[0].value;
+            var scheduleName = assignedSchedule[1].selectedOptions[0].text;
+            var scheduleDate = new Date(assignedSchedule[3].value);
+            scheduleDate = scheduleDate.toDateString().split(' ');
+            scheduleDate[2] = findOrdinal(parseInt(scheduleDate[2]));
+
+            
+            var assignedScheduleTag = document.createElement('div');
+            assignedScheduleTag.classList.add('selected-acts');
+            assignedScheduleTag.dataset.sid = scheduleID;
+
+            var selectedScheduleInfoTag = document.createElement('div');
+            selectedScheduleInfoTag.classList.add('selected-activity-info');
+
+            var deleteBtnWrapper = document.createElement('div');
+            deleteBtnWrapper.classList.add('selected-activity-btns');
+            
+
+            var deleteBtn = document.createElement('button');
+            deleteBtn.classList.add('deleteBtn');
+            deleteBtn.addEventListener('click',deleteAssignedSchedule);
+
+            var deleteBtnImg = document.createElement('img');
+            deleteBtnImg.src = url + 'images/trash.svg';
+
+            var scheduleNameTag = document.createElement('span');
+            scheduleNameTag.classList.add('scheduleName');
+            scheduleNameTag.textContent = scheduleName;
+
+            var scheduleDateTag = document.createElement('span');
+            scheduleDateTag.classList.add('scheduleDate');
+            scheduleDateTag.textContent = 'Assigned On ' +scheduleDate[2] + ' ' + scheduleDate[1] + ' ' + scheduleDate[3];
+
+            selectedScheduleInfoTag.appendChild(scheduleNameTag);
+            selectedScheduleInfoTag.appendChild(document.createElement('br'));
+            selectedScheduleInfoTag.appendChild(scheduleDateTag);
+            
+            deleteBtn.appendChild(deleteBtnImg);
+            deleteBtnWrapper.appendChild(deleteBtn);
+            
+            assignedScheduleTag.appendChild(selectedScheduleInfoTag);
+            assignedScheduleTag.appendChild(deleteBtnWrapper);
+            
+            document.getElementsByClassName('schedule-acts')[0].appendChild(assignedScheduleTag);
+        }
+        function deleteToggle(ev) {
+            ev.currentTarget.parentElement.parentElement.classList.toggle('activity-removed');
+        }
+        function addDeleteEvents() {
+            var items = document.querySelectorAll('.deleteBtn');
+            items.forEach((item) => {
+                item.addEventListener('click',deleteToggle);
+            });
+        }
+        function addEditEvents() {
+            var items = document.querySelectorAll('.editBtn');
+            items.forEach((item) => {
+                item.addEventListener('click',editScheduleInfoForm);
+            });
+        }
+        function addShowHideToggle() {
+            var items = document.querySelectorAll('.schedule-shower .schedule-item');
+            items.forEach((item) => {
+                item.addEventListener('click',getScheduleDataToDisplay);
+            });
+        }
+        function editScheduleInfoForm(ev) {
+            var schedule = ev.currentTarget.parentElement.parentElement;
+            var scheduleID = schedule.dataset.sid;
+            var scheduleName = schedule.children[0].children[0].textContent.replace(/\s+/g, " ").trim();
+            var scheduleDate = schedule.children[0].children[2].textContent.replace(/\s+/g, " ").trim().split(' ');
+
+            var d = parseInt(scheduleDate[2].match(/\d+/).join(''));
+            var m = getMonth(scheduleDate[3]);
+            var y = parseInt(scheduleDate[4]);
+        
+            var dateValue = new Date();
+            dateValue.setDate(d);
+            dateValue.setFullYear(y);
+            dateValue.setMonth(m);
+            
+            var mainDiv = document.createElement('div');
+            mainDiv.classList.add('schedule-date-setter');
+            
+            var scheduleNameLabel = document.createElement('label');
+            scheduleNameLabel.textContent = 'Selected Schedule';
+            scheduleNameLabel.for = 'txtScheduleName';
+
+
+            var oldScheduleDateLabel = document.createElement('label');
+            oldScheduleDateLabel.textContent = 'Current Schedule Date';
+            oldScheduleDateLabel.for = 'txtOldScheduleDate';
+
+            var newScheduleDateLabel = document.createElement('label');
+            newScheduleDateLabel.textContent = 'Assign New Schedule Date';
+            newScheduleDateLabel.for = 'txtNewScheduleDate';
+
+            var scheduleNameTag = document.createElement('input');
+            scheduleNameTag.type = 'text';
+            scheduleNameTag.name = 'txtScheduleName';
+            scheduleNameTag.readOnly = true;
+            scheduleNameTag.dataset.sid = scheduleID;
+            scheduleNameTag.value = scheduleName;
+
+            var oldScheduleDateTag = document.createElement('input');
+            oldScheduleDateTag.type = 'Date';
+            oldScheduleDateTag.name = 'txtOldScheduleDate';
+            oldScheduleDateTag.readOnly = true;
+            oldScheduleDateTag.value = dateValue.toISOString().slice(0,10);
+
+            var newScheduleDateTag = document.createElement('input');
+            newScheduleDateTag.type = 'Date';
+            newScheduleDateTag.name = 'txtNewScheduleDate';
+            newScheduleDateTag.required = true;
+            newScheduleDateTag.value = dateValue.toISOString().slice(0,10);
+
+            var btnWrapper = document.querySelector('.scheduleBtns').cloneNode(true);
+            btnWrapper.children[0].id = 'editBtn';
+            btnWrapper.children[0].value = 'Edit';
+            btnWrapper.dispatchEvent(new Event('click'));
+            btnWrapper.children[0].addEventListener('click',editAssignedScheduleDate);
+
+            var editBtn = document.createElement('input');
+            editBtn.type = 'button';
+            editBtn.id = 'editBtn';
+            editBtn.value = 'Edit';
+            editBtn.addEventListener('click',editScheduleInfo);
+
+            mainDiv.appendChild(scheduleNameLabel);
+            mainDiv.appendChild(scheduleNameTag);
+            mainDiv.appendChild(oldScheduleDateLabel);
+            mainDiv.appendChild(oldScheduleDateTag);
+            mainDiv.appendChild(newScheduleDateLabel);
+            mainDiv.appendChild(newScheduleDateTag);
+            mainDiv.appendChild(btnWrapper);
+            document.querySelector('#editScheduleDateForm .schedule-date-assigner').appendChild(mainDiv);
+            document.querySelectorAll('.menu-items')[2].click();
+        }
+        function editScheduleInfo(ev) {
+            console.log(ev.currentTarget);
+        }
+        function removeAssignedDates(ev) {
+            var itemsToRemove = document.querySelectorAll('.schedule-item.activity-removed');
+            var dataToRemove = [];
+            itemsToRemove.forEach((schedule) => {
+                var data = {
+                    "sid": schedule.dataset.sid,
+                    "sdate": schedule.children[0].children[2].textContent.replace(/\s+/g, " ").trim().slice(12)
+                };
+                dataToRemove.push(JSON.stringify(data));
+            });
+            dataToRemove = dataToRemove.join('*');
+            
+            var myForm = document.createElement('form');
+            var myInput = document.createElement('input');
+            myInput.name = 'scheduleToUnassign';
+            myInput.value = dataToRemove;
+            myForm.appendChild(myInput);
+            
+            var fd = new FormData(myForm);
+
+            var editAssignedScheduleReq = new XMLHttpRequest();
+            editAssignedScheduleReq.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200 ) {
+                    if(this.response === '1') {
+                        itemsToRemove.forEach((item) => {
+                            item.remove();
+                        });
+                    }
+                    else {
+                        alert("Something Went Wrong");
+                    }
+                } 
+            }
+            editAssignedScheduleReq.open('POST','./unassignSchedulesAJAX');
+            editAssignedScheduleReq.send(fd);
+
+        }
+        addShowHideToggle();
+        addEditEvents();
+        addDeleteEvents();
+        document.getElementById('addBtn').addEventListener('click',addSchedule);
+        document.getElementById('createBtn').addEventListener('click',assignSchedules);
+        document.getElementById('saveBtn').addEventListener('click',removeAssignedDates);
+    </script>
+</div>

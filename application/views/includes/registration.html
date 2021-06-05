@@ -1,0 +1,15 @@
+<form name="registration-form" id="regForm" method="post">
+    <div class="registration-wrapper">
+        <h1>Hey Stranger!</h1>
+        <input type="text" id="name" name="txtName" placeholder="What's Your Name?" onblur="checkName(this)" required/>
+        <span class="show-err"></span>
+        <input type="text" id="username" name="txtEmail" placeholder="What's Your Email?" onblur="checkEmail(this)" required/>
+        <span class="show-err"></span>
+        <input type="password" id="password" name="txtPassword" placeholder="What Will Be Your Password?" onblur="checkPassword(this)" required/>
+        <span class="show-err"></span>
+        <input type="submit" id="regBtn" name="regButton" value="Register">
+        <span class="err-msg-from-sv" ><?php echo $registrationErr; ?></span>
+        <span class="err-msg-from-sv" ><?php echo validation_errors(); ?></span>
+        <p>Already Have Account? <b><a id="loginLink" href="./login">Login</a></b> </p>
+    </div>
+</form>

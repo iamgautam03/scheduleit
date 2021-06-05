@@ -1,0 +1,529 @@
+<div class="schedule-wrapper">
+    <div class="menu">
+        <div class="menu-items">Create<br>Schedule</div>
+        <div class="menu-items">Schedule<br>List</div>
+        <div class="menu-items">Edit<br>Schedule</div>
+    </div>
+    <form id="createScheduleForm">
+        <div class="schedule-creator">
+            <label for="txtScheduleName">Schedule Name:</label>
+            <input type="text" name="txtScheduleName" id="scheduleNameForCreate" onkeyup="checkActNDScheduleName(this)" required/>
+            <span class="show-err"></span>
+            <div class="activity-selector"> 
+                <h2>Add Activities To Schedule</h2>
+                <label for="txtActs">Select Activities: </label> <br/>
+                <select name="txtActs">
+                    <?php foreach($activityList as $activity) { ?>
+                        <option value="<?php echo $activity->actNum; ?>">
+                            <?php echo $activity->actName; ?>
+                        </option>
+                    <?php } ?>
+                </select><br/>
+                <label for="txtStTime">Start Time: </label>
+                <input type="time" name="txtStTime" required/>
+                <label for="txtEndTime">End Time: </label>
+                <input type="time" name="txtEndTime" required/>
+                <div class="scheduleBtns">
+                    <input type="button" id="addBtnForCreate" value="Add">
+                    <input type="reset" id="resetBtn" value="Clear">
+                </div>
+            </div>
+            <div class="schedule-acts">
+                <h2>Selected Activities</h2>
+            </div>
+            <span class="err-msg-from-sv"></span>
+            <input type="button" id="createBtn" value="Create">
+        </div>
+    </form>
+    <div class="schedule-shower">
+        <?php 
+            foreach($schedules as $schedule) { ?>
+                <div class="schedule-item" data-sid="<?php echo $schedule->s_id;?>">
+                    <div class="schedule-info">
+                        <span class="scheduleName">
+                            <?php echo $schedule->scheduleName; ?>
+                        </span>
+                    </div>
+                    <div class="schedule-btns">
+                        <button class="editBtn">
+                            <img src="<?php echo base_url(); ?>images/edit(1).svg">
+                        </button>
+                        <button class="deleteBtn">
+                            <img src="<?php echo base_url(); ?>images/trash.svg">
+                        </button>
+                    </div>
+                </div>
+        <?php } ?>
+        <div class="scheduleBtns">
+            <input type="button" id="saveBtn" value="Save">
+            <input type="button" id="resetBtn" value="Reset">
+        </div>
+        <span class="err-msg-from-sv"></span>
+    </div>
+    <form id="editScheduleForm">
+        <div class="schedule-editor">
+            <label for="txtScheduleName">Schedule Name:</label>
+            <input type="text" name="txtScheduleName" id="scheduleNameForEdit" onkeyup="checkActNDScheduleName(this)" required/>
+            <span class="show-err"></span>
+            <div class="activity-selector">
+                <h2>Add Activities To Schedule</h2>
+                <label for="txtActs">Select Activities: </label> <br/>
+                <select name="txtActs">
+                    <?php foreach($activityList as $activity) { ?>
+                        <option value="<?php echo $activity->actNum; ?>">
+                            <?php echo $activity->actName; ?>
+                        </option>
+                    <?php } ?>
+                </select><br/>
+                <label for="txtStTime">Start Time: </label>
+                <input type="time" name="txtStTime" required/>
+                <label for="txtEndTime">End Time: </label>
+                <input type="time" name="txtEndTime" required/>
+                <div class="scheduleBtns">
+                    <input type="button" id="addBtnForEdit" value="Add">
+                    <input type="reset" id="resetBtn" value="Clear">
+                </div>
+            </div>
+            <div class="schedule-acts">
+                <h2>Selected Activities</h2>
+            </div>
+            <span class="err-msg-from-sv"></span>
+            <input type="button" id="editBtn" value="Edit">
+        </div>
+    </form>
+    <script>
+        function addBtnsEvent() {
+            var editBtns = document.getElementsByClassName('editBtn');
+            var deleteBtns = document.getElementsByClassName('deleteBtn');
+            for(var i=0;i<editBtns.length;i++)
+            {
+                editBtns[i].addEventListener('click',toggleEdit);
+            }
+            for(var i=0;i<deleteBtns.length;i++)
+            {
+                if(deleteBtns[i].parentElement.parentElement.className = "schedule-item")
+                {
+                    deleteBtns[i].addEventListener('click',toggleDeleteForSchedule);
+                }
+                else
+                {
+                    deleteBtns[i].addEventListener('click',toggleDeleteForActivities);   
+                }
+            }   
+        }
+        function toggleEdit(ev) {
+            ev.stopPropagation();
+            getScheduleDataToEdit(ev.currentTarget.parentElement.parentElement.dataset.sid,ev.currentTarget.parentElement.previousElementSibling);
+        }
+        function toggleDeleteForActivities(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            console.log(ev.currentTarget);
+            ev.currentTarget.parentElement.parentElement.remove();
+        }
+        function toggleDeleteForSchedule(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.currentTarget.parentElement.parentElement.classList.toggle('activity-removed');
+        }
+        function addActForEdit(ev) {
+            console.log(ev.currentTarget);
+        }
+        function getScheduleData(sid) {
+            console.log(sid);
+        }
+        function editSchedule(ev) {
+            var flag = true;
+
+            var scheduleId = document.getElementById('scheduleNameForEdit').dataset.sid;
+            var scheduleName = document.getElementById('scheduleNameForEdit').value;
+            var selectedActs = document.querySelectorAll('#editScheduleForm .schedule-acts .selected-acts');
+
+            var scheduleActivities = [];
+            var scheduleActivity = {};
+
+            var myForm = document.createElement('form');
+            var scheduleIDInput = document.createElement('input');
+            var scheduleNameInput = document.createElement('input');
+            var scheduleDataInput = document.createElement('input');
+            
+            scheduleNameInput.name = "scheduleName"
+            scheduleNameInput.value = scheduleName;
+
+            scheduleIDInput.name = "scheduleID";
+            scheduleIDInput.type = "text";
+            scheduleIDInput.value = scheduleId;
+
+            myForm.appendChild(scheduleNameInput);
+            myForm.appendChild(scheduleIDInput);
+
+            selectedActs.forEach((selectedAct) => {
+                scheduleActivity.actNum = selectedAct.dataset.actid;
+                scheduleActivity.actStartTime = selectedAct.querySelector('.actTime').innerText.split(" ")[2];
+                scheduleActivity.actEndTime = selectedAct.querySelector('.actTime').innerText.split(" ")[5];
+                if(parseInt(scheduleActivity.actStartTime.split(":")[0]) < parseInt(scheduleActivity.actEndTime.split(":")[0]))
+                {
+                    scheduleActivities.push(JSON.stringify(scheduleActivity));
+                }
+                else if(parseInt(scheduleActivity.actStartTime.split(":")[0]) === parseInt(scheduleActivity.actEndTime.split(":")[0]))
+                {
+                    if(parseInt(scheduleActivity.actStartTime.split(":")[1]) < parseInt(scheduleActivity.actEndTime.split(":")[1]))
+                    {
+                        scheduleActivities.push(JSON.stringify(scheduleActivity));
+                    }
+                    else
+                    {
+                        flag = false;
+                        return;
+                    }
+                }
+                else
+                {
+                    flag = false;
+                    return;
+                }
+            });
+            if(flag === true) {
+                scheduleDataInput.name = 'scheduleData';
+                scheduleDataInput.value = scheduleActivities.join("*");
+
+                myForm.appendChild(scheduleDataInput);
+
+                var fd = new FormData(myForm);
+
+                var scheduleCreateReq = new XMLHttpRequest();
+                scheduleCreateReq.onreadystatechange = function() {
+                    if(this.readyState === 4 && this.status === 200) {
+                        if(this.response === '1') {
+                            window.location.reload();
+                        }
+                        else {
+                            document.querySelectorAll('.err-msg-from-sv')[2].innerHTML = this.response;
+                        }
+                    } 
+                }
+                scheduleCreateReq.open('POST','./editScheduleAJAX');
+                scheduleCreateReq.send(fd);
+            }
+            else {
+                alert('Invalid Schedule');
+            }
+        }
+        function createSchedule(ev) {
+            var flag = true;
+            var scheduleName = document.getElementById('scheduleNameForCreate').value;
+            var selectedActs = document.querySelectorAll('#createScheduleForm .schedule-acts .selected-acts');
+
+            var scheduleActivities = [];
+            var scheduleActivity = {};
+
+            var myForm = document.createElement('form');
+            var scheduleNameInput = document.createElement('input');
+            var scheduleDataInput = document.createElement('input');
+            
+            scheduleNameInput.name = "scheduleName";
+            scheduleNameInput.value = scheduleName;
+            myForm.appendChild(scheduleNameInput);
+
+            selectedActs.forEach((selectedAct) => {
+                scheduleActivity.actNum = selectedAct.dataset.actid;
+                scheduleActivity.actStartTime = selectedAct.querySelector('.actTime').innerText.split(" ")[2];
+                scheduleActivity.actEndTime = selectedAct.querySelector('.actTime').innerText.split(" ")[5];
+                if(parseInt(scheduleActivity.actStartTime.split(":")[0]) < parseInt(scheduleActivity.actEndTime.split(":")[0]))
+                {
+                    scheduleActivities.push(JSON.stringify(scheduleActivity));
+                }
+                else if(parseInt(scheduleActivity.actStartTime.split(":")[0]) === parseInt(scheduleActivity.actEndTime.split(":")[0]))
+                {
+                    if(parseInt(scheduleActivity.actStartTime.split(":")[1]) < parseInt(scheduleActivity.actEndTime.split(":")[1]))
+                    {
+                        scheduleActivities.push(JSON.stringify(scheduleActivity));
+                    }
+                    else
+                    {
+                        flag = false;
+                        return;
+                    }
+                }
+                else
+                {
+                    flag = false;
+                    return;
+                }
+            });
+            if(flag === true) {
+                scheduleDataInput.name = 'scheduleData';
+                scheduleDataInput.value = scheduleActivities.join("*");
+
+                myForm.appendChild(scheduleDataInput);
+
+                var fd = new FormData(myForm);
+
+                var scheduleCreateReq = new XMLHttpRequest();
+                scheduleCreateReq.onreadystatechange = function() {
+                    if(this.readyState === 4 && this.status === 200 ) {
+                        console.log(this.response);
+                        if(this.response === '1') {
+                            window.location.reload();
+                        }
+                        else {
+                            document.querySelectorAll('.err-msg-from-sv')[0].innerHTML = this.response;
+                        }
+                    } 
+                }
+                scheduleCreateReq.open('POST','./createScheduleAJAX');
+                scheduleCreateReq.send(fd);
+            }
+            else {
+                alert('Invalid Schedule');
+            }
+        }
+        function addActForCreate(ev) {
+            var url = "<?php echo base_url();?>";
+
+            var actInfo = ev.currentTarget.parentElement.parentElement.children;
+            
+            var startTime = actInfo[6].value;
+
+            var endTime = actInfo[8].value;
+
+            var mainDiv = document.createElement("div");
+            mainDiv.classList.add('selected-acts');
+
+            var divForInfo = document.createElement("div");
+            divForInfo.classList.add('selected-activity-info');
+
+            var divForBtns = document.createElement("div");
+            divForBtns.classList.add('selected-activity-btns');
+
+            var actName = document.createElement("span");
+            actName.classList.add("actName");
+            actName.textContent = actInfo[3].selectedOptions[0].textContent;
+
+            var actTime = document.createElement("span");
+            actTime.classList.add("actTime");
+            actTime.textContent = "Starts At " + startTime + " Ends At " + endTime;
+
+            var deleteBtn = document.createElement("button");
+            deleteBtn.classList.add("deleteBtn");
+            deleteBtn.addEventListener('click',toggleDeleteForActivities);
+
+            var deleteImg = document.createElement("img");
+            deleteImg.src = url + 'images/trash.svg';
+            
+            divForInfo.appendChild(actName);
+            divForInfo.appendChild(document.createElement('br'));
+            divForInfo.appendChild(actTime);
+            mainDiv.appendChild(divForInfo);
+
+            deleteBtn.appendChild(deleteImg);
+            divForBtns.appendChild(deleteBtn);
+            mainDiv.appendChild(divForBtns);
+
+            mainDiv.dataset.actid = actInfo[3].value; 
+
+            if(actInfo[0].parentElement.parentElement.parentElement.id === "createScheduleForm") {
+                document.getElementsByClassName("schedule-acts")[0].appendChild(mainDiv);
+            }
+            else {
+                document.getElementsByClassName("schedule-acts")[1].appendChild(mainDiv);
+            }
+        }
+        function getScheduleDataToEdit(s_id,scheduleName) {
+            var myForm = document.createElement('form');
+            var scheduleIDInput = document.createElement('input');
+            scheduleIDInput.name = 'scheduleID';
+            scheduleIDInput.type = 'text';
+            scheduleIDInput.value = s_id;
+            myForm.appendChild(scheduleIDInput);
+            var fd = new FormData(myForm);
+            
+            var schdlRetriveReq = new XMLHttpRequest();
+            schdlRetriveReq.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200 ) {
+                    try {
+                        var scheduleData = JSON.parse(this.response);
+                        fillScheduleEditForm(s_id,scheduleData,scheduleName);
+                    }
+                    catch(err) {
+                        document.getElementsByClassName('err-msg-from-sv')[1].innerHTML = "Please Refresh the Page Something Went Wrong";
+                    }
+                } 
+            }
+            schdlRetriveReq.open('POST','./getSchedule');
+            schdlRetriveReq.send(fd);
+        }
+        function deleteSchedule(ev) {
+            var schedulesToDelete = document.querySelectorAll('.schedule-item.activity-removed');
+            var myForm = document.createElement('form');
+            var myInput = document.createElement('input');
+            myInput.name = 'scheduleIdsToDelete';
+            var scheduleIds = [];
+            schedulesToDelete.forEach((schedule) => {
+                scheduleIds.push(parseInt(schedule.dataset.sid));
+            });
+            myInput.value = scheduleIds.join("*");
+            myForm.appendChild(myInput);
+            var fd = new FormData(myForm);
+            var schdlDeleteReq = new XMLHttpRequest();
+            schdlDeleteReq.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200 ) {
+                    if(this.response == "1") {
+                        schedulesToDelete.forEach((scheduleAct) => {
+                            scheduleAct.remove();
+                        });
+                    }
+                    else {
+                        document.getElementsByClassName('err-msg-from-sv')[1].innerHTML = this.response;
+                    }
+                } 
+            }
+            schdlDeleteReq.open('POST','./deleteScheduleAJAX');
+            schdlDeleteReq.send(fd);
+        }
+        function fillScheduleEditForm(s_id,dataToFill,scheduleName) {
+
+            var formElements = document.getElementById('editScheduleForm').children[0].children;
+            formElements[1].dataset.sid = s_id;
+            formElements[1].value = scheduleName.innerText.replace(/\s+/g, " ").trim();
+
+            oldTrashActs = document.querySelectorAll(".schedule-editor .schedule-acts")[0].children;
+            for(var i=oldTrashActs.length-1;i>0;i--)
+            {
+                oldTrashActs[i].remove();
+            }
+
+            dataToFill.forEach((activity) => {
+                var actNum = activity.actNum;
+                var actInfo = activity.actName;
+                var startTime = activity.actStartTime.slice(0,5);
+                var endTime = activity.actEndTime.slice(0,5);
+
+                var mainDiv = document.createElement("div");
+                mainDiv.classList.add('selected-acts');
+
+                var divForInfo = document.createElement("div");
+                divForInfo.classList.add('selected-activity-info');
+
+                var divForBtns = document.createElement("div");
+                divForBtns.classList.add('selected-activity-btns');
+
+                var actName = document.createElement("span");
+                actName.classList.add("actName");
+                actName.textContent = actInfo;
+
+                var actTime = document.createElement("span");
+                actTime.classList.add("actTime");
+                actTime.textContent = "Starts At " + startTime + " Ends At " + endTime;
+
+                var deleteBtn = document.createElement("button");
+                deleteBtn.classList.add("deleteBtn");
+                deleteBtn.addEventListener('click',toggleDeleteForActivities);
+
+                var deleteImg = document.createElement("img");
+                deleteImg.src = document.querySelector('.schedule-shower .deleteBtn').children[0].src;
+
+                divForInfo.appendChild(actName);
+                divForInfo.appendChild(document.createElement('br'));
+                divForInfo.appendChild(actTime);
+                mainDiv.appendChild(divForInfo);
+
+                deleteBtn.appendChild(deleteImg);
+                divForBtns.appendChild(deleteBtn);
+                mainDiv.appendChild(divForBtns);
+
+                mainDiv.dataset.actid = actNum; 
+                document.querySelectorAll(".schedule-editor .schedule-acts")[0].appendChild(mainDiv);
+            });
+            document.querySelectorAll('.menu-items')[2].click();
+        }
+        function getScheduleDataToDisplay(ev) {
+            var selectedSchedule = ev.currentTarget;
+            var flag = false;
+            if(selectedSchedule.nextElementSibling.dataset.sid !==undefined) {
+                flag = true;
+            }
+            else if(selectedSchedule.nextElementSibling.className !== 'scheduleBtns') {
+                selectedSchedule.nextElementSibling.classList.toggle('hide-content');
+            }
+            else {
+                flag = true;
+            }
+
+            if (flag === true) {
+                var myForm = document.createElement('form');
+                var scheduleIDInput = document.createElement('input');
+                scheduleIDInput.name = 'scheduleID';
+                scheduleIDInput.type = 'text';
+                scheduleIDInput.value = ev.currentTarget.dataset.sid;
+                myForm.appendChild(scheduleIDInput);
+                var fd = new FormData(myForm);
+                var schdlRetriveReq = new XMLHttpRequest();
+                schdlRetriveReq.onreadystatechange = function() {
+                    if(this.readyState === 4 && this.status === 200 ) {
+                        try {
+                            var scheduleData = JSON.parse(this.response);
+                            displayScheduleData(selectedSchedule,scheduleData);
+                        }
+                        catch(err) {
+                            document.getElementsByClassName('err-msg-from-sv')[1].innerHTML = "Please Refresh the Page Something Went Wrong";
+                        }
+                    } 
+                }
+                schdlRetriveReq.open('POST','./getSchedule');
+                schdlRetriveReq.send(fd);
+            }
+        }
+        function displayScheduleData(selectedSchedule,schedulesData) {
+            var mainDiv = document.createElement("div");
+            mainDiv.classList.add('schedule-item');
+            mainDiv.style.border = 'None';
+            mainDiv.style.flexDirection = 'Column';
+
+            schedulesData.forEach((scheduleData) => {
+                var childDiv = document.createElement("div");
+                childDiv.classList.add('selected-acts');
+                childDiv.style.border = '1px solid #0c0c0c';
+                childDiv.style.borderRadius = '7px';
+                childDiv.style.margin = '0.5%';
+
+                var startTime = scheduleData.actStartTime.slice(0,5);
+                var endTime = scheduleData.actEndTime.slice(0,5);
+
+                var divForInfo = document.createElement("div");
+                divForInfo.classList.add('selected-activity-info');
+                divForInfo.style.border = 'None';
+                divForInfo.style.width = '100%';
+
+                var actName = document.createElement("span");
+                actName.classList.add("actName");
+                actName.textContent = scheduleData.actName;
+
+                var actTime = document.createElement("span");
+                actTime.classList.add("actTime");
+                actTime.textContent = "Starts At " + startTime + " Ends At " + endTime;
+
+                
+                divForInfo.appendChild(actName);
+                divForInfo.appendChild(document.createElement('br'));
+                divForInfo.appendChild(actTime);
+                childDiv.appendChild(divForInfo);
+                mainDiv.appendChild(childDiv);
+            });
+            selectedSchedule.insertAdjacentElement('afterend',mainDiv);
+        }
+        function addShowHideToggle() {
+            var items = document.querySelectorAll('.schedule-shower .schedule-item');
+            items.forEach((item) => {
+                item.addEventListener('click',getScheduleDataToDisplay);
+            });
+        }
+        addBtnsEvent();
+        addShowHideToggle();
+        document.getElementById('addBtnForEdit').addEventListener('click',addActForCreate);
+        document.getElementById('addBtnForCreate').addEventListener('click',addActForCreate);
+        document.getElementById('createBtn').addEventListener('click',createSchedule);
+        document.getElementById('editBtn').addEventListener('click',editSchedule);
+        document.getElementById('saveBtn').addEventListener('click',deleteSchedule);
+    </script>
+</div>

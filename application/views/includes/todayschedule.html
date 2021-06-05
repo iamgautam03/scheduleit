@@ -1,0 +1,122 @@
+<div class="schedule-wrapper">
+    <div class="todays-schedule-wrapper">
+        <h2>Today's Schedule</h2>
+        <?php foreach($todaysSchedule as $scheduleItem) { ?>
+            <div class="schedule-item" data-sid = "<?php echo $scheduleItem->s_id; ?>">
+                <div class="activity-info" data-actNum = "<?php echo $scheduleItem->seqNum; ?>">
+                    <span class="actName">
+                        <?php echo $scheduleItem->actName; ?>
+                    </span>
+                    <br>
+                    <span class="actTime">
+                        <?php echo $scheduleItem->actStartTime.' - '.$scheduleItem->actEndTime; ?>
+                    </span>
+                    <br>
+                    <span class="imp-act">
+                        <?php if($scheduleItem->isImp == '0') { ?>
+                            <span class="is-not-symbol">&#10006;</span> Important
+                        <?php } else { ?>
+                            <span class="is-symbol">&#10004;</span> Important
+                        <?php } ?>
+                    </span>
+                    <br>
+                    <span class="urgent-act">
+                        <?php if($scheduleItem->isUrgent == '0') { ?>
+                            <span class="is-not-symbol">&#10006;</span> Urgent
+                        <?php } else { ?>
+                            <span class="is-symbol">&#10004;</span> Urgent
+                        <?php } ?>
+                    </span>
+                </div>
+                <div class="activity-btns">
+                    <?php if($scheduleItem->isActCompleted == '0') { ?>
+                        <button type="button" class="checkBtn">&#10004;</button>
+                    <?php } else { ?>
+                        <button type="button" class="checkBtn checkBtn-active">&#10004;</button>
+                    <?php } ?>
+                    <button type="button" class="deleteBtn">
+                        <img src="<?php echo base_url(); ?>images/trash.svg">
+                    </button>
+                </div>
+            </div>
+        <?php } ?>
+        <span class="err-msg-from-sv"></span>
+    </div>
+    <div class="scheduleBtns">
+        <input type="button" id="saveBtn" value="Save">
+        <input type="reset" id="resetBtn" value="Reset">
+    </div>
+    <script>
+        function updateTodaysSchedule(ev) {
+            var updChanges = document.querySelectorAll('.schedule-item.chk-changed');
+            var delChanges = document.querySelectorAll('.schedule-item.activity-removed');
+            var scheduleID = undefined !== updChanges[0]  ? updChanges[0].dataset.sid : (undefined !== delChanges[0] ? delChanges[0].dataset.sid : false);
+            if(scheduleID === false) {
+                return;
+            }
+            var dataToSendUpd = [];
+            var dataToSendDel = [];
+            updChanges.forEach((updItem) => {
+                var data = {
+                    "seqNum": updItem.children[0].dataset.actnum,
+                    "isActCompleted": updItem.children[1].children[0].classList.contains('checkBtn-active') ? '1' : '0'
+                };
+                dataToSendUpd.push(JSON.stringify(data));
+            });
+            delChanges.forEach((delItem) => {
+                dataToSendDel.push(delItem.children[0].dataset.actnum);
+            });
+            console.log(dataToSendDel);
+            var myForm = document.createElement('form');
+            var sidInput = document.createElement('input');
+            sidInput.name = 'txtSid';
+            sidInput.type = 'text';
+            sidInput.value = scheduleID;
+            var updInput = document.createElement('input');
+            updInput.name = 'txtUpd';
+            updInput.value = dataToSendUpd.join('*');
+            var delInput = document.createElement('input');
+            delInput.name = 'txtDel';
+            delInput.value = dataToSendDel.join('*');
+
+            myForm.appendChild(sidInput);
+            myForm.appendChild(updInput);
+            myForm.appendChild(delInput);
+
+            var fd = new FormData(myForm);
+            var updTdySchedule = new XMLHttpRequest();
+            updTdySchedule.onreadystatechange = function() {
+                if(this.readyState === 4 && this.status === 200 ) {
+                    if(this.response === '1') {
+                        window.location.reload();
+                    }
+                    else {
+                        console.log(this.response);
+                        document.getElementsByClassName('err-msg-from-sv')[0].textContent = "Something Went Wrong While Updating Todays Schedule";
+                    }
+                } 
+            }
+            updTdySchedule.open('POST','./updateTodaysScheduleAJAX');
+            updTdySchedule.send(fd);
+        }
+        function addBtnsEvent() {
+            var checkBtns = document.getElementsByClassName('checkBtn');
+            var deleteBtns = document.getElementsByClassName('deleteBtn');
+            for(var i=0;i<checkBtns.length;i++)
+            {
+                checkBtns[i].addEventListener('click',toggleCheck);
+                deleteBtns[i].addEventListener('click',toggleDelete);
+            }
+        }
+        function toggleCheck(ev) {
+            ev.currentTarget.classList.toggle('checkBtn-active');
+            ev.currentTarget.parentElement.parentElement.classList.toggle('chk-changed');
+        }
+        function toggleDelete(ev) {
+            ev.currentTarget.parentElement.parentElement.classList.toggle('activity-removed');
+        }
+        addBtnsEvent();
+        document.getElementById('saveBtn').addEventListener('click',updateTodaysSchedule);
+        document.getElementById('resetBtn').addEventListener('click',(ev)=>{window.location.reload();});
+    </script>
+</div>

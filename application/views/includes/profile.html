@@ -1,0 +1,43 @@
+<div class="profile-wrapper">
+    <div class="menu">
+        <div class="menu-items">Edit<br>Profile</div>
+        <div class="menu-items">Change<br>Password</div>
+    </div>
+    <form id="changePasswordForm" method="POST">
+        <div class="password-changer">
+            <label for="txtOldPass">Old Password: </label>
+            <input type="password" name="txtOldPass" required/>
+            <span class="show-err"></span>
+            <label for="txtNewPass">New Password: </label>
+            <input type="password" name="txtNewPass" required/>
+            <span class="show-err"></span>
+            <label for="txtNewPassConf">New Password Confirm: </label>
+            <input type="password" name="txtNewPassConf" onkeyup="checkConfPassword(this)" required/>
+            <span class="show-err"></span>
+            <span class="err-msg-from-sv">
+                <?php echo $changePassErr; ?>
+            </span>
+            <div class="scheduleBtns">
+                <input type="submit" id="passChangeBtn" name="passChangeBtn" value="Change">        
+                <input type="reset" id="resetBtn" value="Reset">
+            </div>
+        </div>
+    </form>
+    <form id="editProfileForm" method="POST">
+        <div class="profile-editor">
+            <label for="txtName">Name:</label>
+            <input type="text" name="txtName" value="<?php echo $userData->name; ?>" onkeyup="checkName(this)" required/>
+            <span class="show-err"></span>
+            <label for="txtEmail">Email:</label>
+            <input type="text" name="txtEmail" value="<?php echo $userData->email; ?>" onkeyup="checkEmail(this)" required/>
+            <span class="show-err"></span>
+            <span class="err-msg-from-sv">
+                <?php echo $editProfileErr; ?>
+            </span>
+            <div class="scheduleBtns">
+                <input type="submit" id="saveBtn" id="profileEditBtn" name="profileEditBtn" value="Save">
+                <input type="reset" id="resetBtn" value="Reset">
+            </div>
+        </div>
+    </form>
+</div>

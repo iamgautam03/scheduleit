@@ -1,0 +1,13 @@
+<form name="login-form" id="loginForm" method="post" onsubmit="validateLoginFields();">
+    <div class="login-wrapper">
+        <h1>Welcome!</h1>
+        <input type="text" id="username" name="txtEmail" placeholder="Enter EmailID Here" onblur="checkEmail(this)" required/>
+        <span class="show-err"></span>
+        <input type="password" id="password" name="txtPassword" placeholder="Enter Password Here" onblur="checkPassword(this)" required/>
+        <span class="show-err"></span>
+        <input type="submit" id="loginBtn" name="loginButton" value="Login">
+        <span class="err-msg-from-sv" ><?php echo $loginErr ?></span>
+        <span class="err-msg-from-sv" ><?php echo validation_errors(); ?></span>
+        <p>Not a User? <b><a id="regLink" href="./register">Register</a></b> </p>
+    </div>
+</form>
