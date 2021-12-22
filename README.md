@@ -21,4 +21,3 @@
 
 ##### Further Enhancement
 - Notifications
-- Refactoring of Code
