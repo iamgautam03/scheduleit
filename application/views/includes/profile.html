@@ -3,7 +3,7 @@
         <div class="menu-items">Edit<br>Profile</div>
         <div class="menu-items">Change<br>Password</div>
     </div>
-    <form id="changePasswordForm" method="POST">
+    <form id="changePasswordForm" method="POST" action="<?php echo base_url().'index.php/dashboard/cred'; ?>">
         <div class="password-changer">
             <label for="txtOldPass">Old Password: </label>
             <input type="password" name="txtOldPass" required/>
@@ -18,12 +18,12 @@
                 <?php echo $changePassErr; ?>
             </span>
             <div class="scheduleBtns">
-                <input type="submit" id="passChangeBtn" name="passChangeBtn" value="Change">        
+                <input type="submit" id="passChangeBtn" name="passChangeBtn" value="Change">
                 <input type="reset" id="resetBtn" value="Reset">
             </div>
         </div>
     </form>
-    <form id="editProfileForm" method="POST">
+    <form id="editProfileForm" method="post" action="<?php echo base_url().'index.php/dashboard/updateMe'; ?>">
         <div class="profile-editor">
             <label for="txtName">Name:</label>
             <input type="text" name="txtName" value="<?php echo $userData->name; ?>" onkeyup="checkName(this)" required/>

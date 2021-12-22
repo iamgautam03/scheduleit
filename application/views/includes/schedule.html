@@ -202,7 +202,7 @@
                         }
                     } 
                 }
-                scheduleCreateReq.open('POST','./editScheduleAJAX');
+                scheduleCreateReq.open('POST','./update');
                 scheduleCreateReq.send(fd);
             }
             else {
@@ -271,7 +271,7 @@
                         }
                     } 
                 }
-                scheduleCreateReq.open('POST','./createScheduleAJAX');
+                scheduleCreateReq.open('POST','./create');
                 scheduleCreateReq.send(fd);
             }
             else {
@@ -350,7 +350,7 @@
                     }
                 } 
             }
-            schdlRetriveReq.open('POST','./getSchedule');
+            schdlRetriveReq.open('POST','./get');
             schdlRetriveReq.send(fd);
         }
         function deleteSchedule(ev) {
@@ -360,7 +360,7 @@
             myInput.name = 'scheduleIdsToDelete';
             var scheduleIds = [];
             schedulesToDelete.forEach((schedule) => {
-                scheduleIds.push(parseInt(schedule.dataset.sid));
+                scheduleIds.push(schedule.dataset.sid);
             });
             myInput.value = scheduleIds.join("*");
             myForm.appendChild(myInput);
@@ -378,7 +378,7 @@
                     }
                 } 
             }
-            schdlDeleteReq.open('POST','./deleteScheduleAJAX');
+            schdlDeleteReq.open('POST','./delete');
             schdlDeleteReq.send(fd);
         }
         function fillScheduleEditForm(s_id,dataToFill,scheduleName) {
@@ -470,7 +470,7 @@
                         }
                     } 
                 }
-                schdlRetriveReq.open('POST','./getSchedule');
+                schdlRetriveReq.open('POST','./get');
                 schdlRetriveReq.send(fd);
             }
         }

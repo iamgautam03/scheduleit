@@ -89,7 +89,7 @@
                     }
                 }
             }
-            editAssignedScheduleReq.open('POST','./editAssignedScheduleAJAX');
+            editAssignedScheduleReq.open('POST','./change');
             editAssignedScheduleReq.send(fd);
             
         }
@@ -125,7 +125,7 @@
                     
                 } 
             }
-            assignScheduleReq.open('POST','./assignSchedulesAJAX');
+            assignScheduleReq.open('POST','./set');
             assignScheduleReq.send(fd);
 
         }
@@ -336,7 +336,7 @@
                     }
                 } 
             }
-            editAssignedScheduleReq.open('POST','./unassignSchedulesAJAX');
+            editAssignedScheduleReq.open('POST','./unset');
             editAssignedScheduleReq.send(fd);
 
         }
