@@ -4,7 +4,7 @@
        <div class="menu-items">Activity<br>List</div>
        <div class="menu-items">Edit<br>Activity</div>
     </div>
-    <form id="addActForm" method="POST">
+    <form id="addActForm" method="POST" action="<?php echo base_url().'index.php/activity/add'; ?>">
         <div class="activity-adder">
             <label for="txtActName">Activity Name:</label>
             <input type="text" name="txtActName" onkeyup="checkActNDScheduleName(this)" required/>
@@ -81,7 +81,7 @@
         </div>
         <span class="err-msg-from-sv"></span>
     </div>
-    <form id="editActForm" method="POST">
+    <form id="editActForm" method="POST" action="<?php echo base_url().'index.php/activity/update/'; ?>">
         <div class="activity-editor">
             <input type="text" name="actID" class="hide-content" readonly>
             <label for="actName">Activity Name:</label>
@@ -140,6 +140,7 @@
         }
         function fillEditActForm(actData) {
             var formInputs = document.querySelectorAll('.activity-editor input');
+            document.querySelector('#editActForm').action = "<?php echo base_url().'index.php/activity/update/'; ?>" + actData.actID;
             formInputs[0].value = actData.actID;
             formInputs[1].defaultValue = actData.actName;
             formInputs[2].value = parseInt(actData.actTime.split(" ")[0]);
@@ -178,7 +179,7 @@
                     }
                 } 
             }
-            actDeleteReq.open('POST','./deleteMulitActs');
+            actDeleteReq.open('POST','./delete');
             actDeleteReq.send(fd);
         }
         addBtnsEvent();

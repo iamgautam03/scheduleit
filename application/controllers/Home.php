@@ -31,7 +31,7 @@
                     if($userData)
                     {
                         $this->session->set_userdata('user',$userData);
-                        redirect('dashboard/todayschedule');
+                        redirect('schedule/today');
                     }
                     $result['loginErr'] = "Invalid Email and Password Combination";
                 }

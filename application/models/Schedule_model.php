@@ -25,7 +25,7 @@
                 foreach($s_ids as $s_id)
                 {
                     $sid = intval($s_id);
-                    $temp = $this->db->query("DELETE FROM users_schedules WHERE s_id = $sid");
+                    $temp = $this->db->query("DELETE FROM users_schedules WHERE s_id = $s_id");
                 }
             $this->db->trans_complete();
             return $this->db->trans_status(); 
